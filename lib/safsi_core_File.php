@@ -4,7 +4,7 @@
  * @package safsi
  */
 
-safsi_core_require_once('safsi_core_IFile.php');
+require_once('safsi_core_IFile.php');
 
 /**
  * File Class.

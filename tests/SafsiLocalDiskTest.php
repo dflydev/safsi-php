@@ -1,10 +1,8 @@
 <?php
 
-require_once(dirname(__FILE__) . '/AbstractSafsiTest.php');
+require_once('AbstractSafsiTest.php');
 
-require_once('safsi_core.php');
-
-safsi_core_require_once('safsi_localdisk_FileSystem.php');
+require_once('safsi_localdisk_FileSystem.php');
 
 class SafsiLocalDiskTest extends AbstractSafsiTest {
 

@@ -1,0 +1,10 @@
+Safsi - A simple abstract file system interface for PHP
+http://code.google.com/p/safsi-php/
+http://safsi-php.org/
+
+
+Safsi is a simple abstract file system interface for PHP. The goal is to
+provide a simple interface for accessing files in a consistent way,
+whether dealing with file locally on disk or dealing with files that
+exist remotely. For example, the same code should work for data stored
+on a local disk, data stored on s3 and data stored on CloudFiles.

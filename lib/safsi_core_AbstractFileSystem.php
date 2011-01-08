@@ -4,10 +4,10 @@
  * @package safsi
  */
 
-safsi_core_require_once('safsi_core_IFileSystem.php');
-safsi_core_require_once('safsi_core_ListItem.php');
-safsi_core_require_once('safsi_core_File.php');
-safsi_core_require_once('safsi_core_Util.php');
+require_once('safsi_core_IFileSystem.php');
+require_once('safsi_core_ListItem.php');
+require_once('safsi_core_File.php');
+require_once('safsi_core_Util.php');
 
 /**
  * Abstract File System Class.

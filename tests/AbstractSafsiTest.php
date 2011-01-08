@@ -5,9 +5,9 @@ require_once 'PHPUnit/Framework.php';
 set_include_path(get_include_path() . PATH_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'lib');
 set_include_path(get_include_path() . PATH_SEPARATOR . 'lib');
 
-require_once('safsi_core_Util.php');
 require_once('safsi_localdisk_Util.php');
 
+// Is this safe?
 ini_set('error_reporting', E_ALL);
 
 abstract class AbstractSafsiTest extends PHPUnit_Framework_TestCase {

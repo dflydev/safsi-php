@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<project name="safsi-php" default="default" basedir=".">
+
+    <property file="build.properties" />
+    
+    <property name="paths.build" value="${project.basedir}/build" />
+    <property name="paths.dist" value="${project.basedir}/dist" />
+    <property name="paths.repo" value="${project.basedir}/repos" />
+    <property name="paths.tests" value="${project.basedir}/tests" />
+    <property name="paths.logs" value="${paths.build}/logs" />
+    <property name="paths.reports" value="${paths.build}/reports" />
+
+    <property name="safsi.repository.url" value="git://github.com/dflydev/safsi-php.git" />
+    <property name="safsi.repository.path" value="${paths.repo}/safsi-php" />
+    
+    <fileset dir="${safsi.repository.path}/lib" id="safsi-libs">
+        <include name="*.php" />
+    </fileset>
+
+    <fileset dir="${safsi.repository.path}" id="safsi-misc">
+        <include name="README" />
+        <include name="LICENSE" />
+    </fileset>
+    
+    <tstamp>
+        <format property="DSTAMP" pattern="%Y%m%d" />
+        <format property="TSTAMP" pattern="%H%M%S" />
+    </tstamp>
+    
+    <target name="version">
+        <if>
+            <isset property="safsi.tag" />
+            <then><property name="safsi.version" value="${safsi.tag}" /></then>
+            <else>
+                <if>
+                    <not><isset property="safsi.snapshotVersion" /></not>
+                    <then>
+                        <property name="safsi.snapshotVersion" value="snapshot-${DSTAMP}${TSTAMP}" />
+                    </then>
+                </if>
+                <if>
+                    <isset property="safsi.branch" />
+                    <then><property name="safsi.version" value="${safsi.branch}-${safsi.snapshotVersion}" /></then>
+                    <else><property name="safsi.version" value="${safsi.snapshotVersion}" /></else>
+                </if>
+            </else>
+        </if>
+    </target>
+    
+    <target name="setProperties" depends="version">
+        <property name="safsi.pkgname.basic" value="safsi-${safsi.version}" />
+	    <property name="safsi.build.basic.path" value="${paths.build}/${safsi.pkgname.basic}" />
+	    <property name="safsi.dist.basic.zipfile" value="${paths.dist}/${safsi.pkgname.basic}.zip" />
+	    <property name="safsi.dist.basic.tgzfile" value="${paths.dist}/${safsi.pkgname.basic}.tar.gz" />
+    </target>
+    
+    <target name="prep">
+        <mkdir dir="${paths.build}" />
+        <mkdir dir="${paths.dist}" />
+    </target>
+    
+    <target name="cleanBuild">
+        <delete dir="${paths.build}" />
+    </target>
+    
+    <target name="cleanDist">
+        <delete dir="${paths.dist}" />
+    </target>
+    
+    <target name="cleanRepos">
+        <delete dir="${paths.repos}" />
+    </target>
+    
+    <target name="clean" depends="cleanBuild,cleanDist" />
+    <target name="realClean" depends="clean,cleanRepos" />
+    <target name="realclean" depends="realClean" />
+    
+    <target name="update" depends="prep">
+        <if>
+            <available file="${safsi.repository.path}" />
+            <then>
+                <echo>Fetching changes from upstream repository</echo>
+                <gitfetch repository="${safsi.repository.path}" tags="true" />
+            </then>
+            <else>
+		        <mkdir dir="${safsi.repository.path}" />
+		        <gitclone repository="${safsi.repository.url}" targetPath="${safsi.repository.path}" />
+            </else>
+        </if>
+        <if>
+            <isset property="safsi.tag" />
+            <then>
+                <gitcheckout repository="${safsi.repository.path}" branchname="v${safsi.tag}" />
+            </then>
+            <else>
+                <if>
+                    <isset property="safsi.branch" />
+                    <then>
+                        <!--<gitcheckout repository="${safsi.repository.path}" create="true" branchname="${safsi.branch}" startPoint="origin/${safsi.branch}" />-->
+                        <gitcheckout repository="${safsi.repository.path}" create="true" branchname="${safsi.branch}" startPoint="origin/${safsi.branch}" />
+                    </then>
+                    <else>
+                        <gitcheckout repository="${safsi.repository.path}" branchname="master" />
+                    </else>
+                </if>
+            </else>
+        </if>
+    </target>
+
+    <target name="buildBasic">
+        <copy toDir="${safsi.build.basic.path}" mode="0755">
+            <fileset refid="safsi-libs"/>
+            <fileset refid="safsi-misc"/>
+        </copy>
+        <chmod mode="0755">
+            <fileset dir="${safsi.build.basic.path}">
+                <include name="*.php" />
+                <include name="README" />
+                <include name="LICENSE" />
+            </fileset>
+        </chmod>
+    </target>
+
+    <target name="build" depends="setProperties,update,cleanBuild,buildBasic" />
+    
+    <target name="distBasic" depends="build">
+
+        <mkdir dir="${paths.dist}" />
+
+        <delete file="${safsi.dist.basic.tgzfile}" />
+        <tar compression="gzip" destFile="${safsi.dist.basic.tgzfile}" basedir="${safsi.build.basic.path}" prefix="${safsi.pkgname.basic}" />
+
+        <delete file="${safsi.dist.basic.zipfile}" />
+        <zip destFile="${safsi.dist.basic.zipfile}" basedir="${safsi.build.basic.path}" prefix="${safsi.pkgname.basic}/" />
+        
+    </target>
+    
+    <target name="dist" depends="distBasic" />
+
+    <target name="test">
+        <mkdir dir="${paths.logs}" />
+        <mkdir dir="${paths.reports}/coverage" />
+        <property name="coverage.database" value="${paths.logs}/coverage.db" />
+        <coverage-setup database="${coverage.database}">
+            <fileset dir="lib">
+                <include name="**/*.php" />
+            </fileset>
+        </coverage-setup>
+        <phpunit printsummary="true" codecoverage="true" haltonfailure="true">
+            <formatter todir="${paths.logs}" type="xml" />
+            <formatter todir="${paths.reports}/coverage" type="clover" />
+            <batchtest>
+                <fileset dir="${paths.tests}">
+                    <include name="*Test.php" />
+                    <exclude name="Abstract*" />
+                </fileset>
+            </batchtest>
+        </phpunit>
+    </target>
+
+    <target name="default" depends="version">
+        <echo>safsi - ${safsi.version}</echo>
+        <echo />
+        <echo>Targets:</echo>
+        <echo>    clean      - Cleans build and dist</echo>
+        <echo>    update     - Updates build files</echo>
+        <echo>    build      - Builds package</echo>
+        <echo>    dist       - Creates distribution archives</echo>
+        <echo>    test       - Tests distribution archives</echo>
+        <echo />
+        <echo>    realclean  - Cleans everything</echo>
+        <echo />
+        <echo>Properties:</echo>
+        <echo>    safsi.tag              - safsi tag to use</echo>
+        <echo>    safsi.branch           - safsi branch to use</echo>
+        <echo>    safsi.version          - safsi version to use</echo>
+        <echo>    safsi.snapshotVersion  - safsi snapshot version to use (branches)</echo>
+        <echo>    safsi.repository.url   - URL for safsi Git Repository</echo>
+    </target>
+    
+</project>

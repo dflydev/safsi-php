@@ -4,7 +4,7 @@
  * @package safsi
  */
 
-safsi_core_require_once('safsi_core_IListItem.php');
+require_once('safsi_core_IListItem.php');
 
 /**
  * List Item Class.

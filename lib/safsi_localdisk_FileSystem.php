@@ -4,7 +4,7 @@
  * @package safsi_localdisk
  */
 
-safsi_core_require_once('safsi_core_AbstractFileSystem.php');
+require_once('safsi_core_AbstractFileSystem.php');
 
 /**
  * Local Disk File System.
